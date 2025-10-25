@@ -80,23 +80,29 @@ export function useFootballScores() {
           const homeTeamName = homeTeam.team?.displayName || 'Unknown'
           const awayTeamName = awayTeam.team?.displayName || 'Unknown'
 
+          const possession = competition.situation?.possession || null
+          const possessionTeamId = possession ? competition.competitors.find(t => t.id === possession)?.id : null
+
           return {
             id: event.id,
             awayTeam: {
               name: awayTeamName,
               score: parseInt(awayTeam.score) || 0,
-              logo: homeTeam.team?.logo || '🏈',
-              ranking: rankings.value[awayTeamName.toLowerCase()] || null
+              logo: awayTeam.team?.logo || '🏈',
+              ranking: rankings.value[awayTeamName.toLowerCase()] || null,
+              hasPossession: possessionTeamId === awayTeam.id
             },
             homeTeam: {
               name: homeTeamName,
               score: parseInt(homeTeam.score) || 0,
-              logo: awayTeam.team?.logo || '🏈',
-              ranking: rankings.value[homeTeamName.toLowerCase()] || null
+              logo: homeTeam.team?.logo || '🏈',
+              ranking: rankings.value[homeTeamName.toLowerCase()] || null,
+              hasPossession: possessionTeamId === homeTeam.id
             },
             timeLeft: event.status?.displayClock || '0:00',
             quarter: event.status?.period || 1,
-            status: 'in_progress'
+            status: 'in_progress',
+            isHalftime: event.status?.type?.state === 'halftime'
           }
         })
         .filter(Boolean) // Remove null entries
@@ -123,8 +129,8 @@ export function useFootballScores() {
 
   onMounted(() => {
     fetchScores()
-    // Update every 60 seconds to avoid rate limiting
-    interval = setInterval(updateScores, 60000)
+    // Update every 30 seconds as requested
+    interval = setInterval(updateScores, 30000)
   })
 
   onUnmounted(() => {

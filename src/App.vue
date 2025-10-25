@@ -50,8 +50,10 @@ onUnmounted(() => {
     <div class="games-list">
       <div v-for="game in games" :key="game.id" class="game-card">
         <div class="game-header">
-          <span class="quarter">Q{{ game.quarter }}</span>
-          <span class="time-left">{{ game.timeLeft }}</span>
+          <div class="quarter-time">
+            <span class="quarter">{{ game.isHalftime ? 'HT' : `Q${game.quarter}` }}</span>
+            <span class="time-left">{{ game.timeLeft }}</span>
+          </div>
         </div>
         <div class="teams-container">
           <div class="team away">
@@ -61,6 +63,7 @@ onUnmounted(() => {
               <div class="team-name">
                 <span v-if="game.awayTeam.ranking && game.awayTeam.ranking <= 25" class="ranking">#{{ game.awayTeam.ranking }}</span>
                 {{ game.awayTeam.name.length > 15 ? game.awayTeam.name.substring(0, 15) + '...' : game.awayTeam.name }}
+                <span v-if="game.awayTeam.hasPossession" class="possession-icon">🏈</span>
               </div>
               <div class="team-score">{{ game.awayTeam.score }}</div>
             </div>
@@ -73,6 +76,7 @@ onUnmounted(() => {
               <div class="team-name">
                 <span v-if="game.homeTeam.ranking && game.homeTeam.ranking <= 25" class="ranking">#{{ game.homeTeam.ranking }}</span>
                 {{ game.homeTeam.name.length > 15 ? game.homeTeam.name.substring(0, 15) + '...' : game.homeTeam.name }}
+                <span v-if="game.homeTeam.hasPossession" class="possession-icon">🏈</span>
               </div>
               <div class="team-score">{{ game.homeTeam.score }}</div>
             </div>
@@ -168,6 +172,7 @@ onUnmounted(() => {
   position: relative;
   overflow-y: auto;
   margin: 0;
+  padding-bottom: 2rem;
 }
 
 .scores-container::before {
@@ -224,6 +229,18 @@ onUnmounted(() => {
 .time-left {
   color: #666;
   font-size: 1.1rem;
+}
+
+.possession-icon {
+  margin-left: 0.5rem;
+  font-size: 1rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+  60% { transform: translateY(-3px); }
 }
 
 .teams-container {
