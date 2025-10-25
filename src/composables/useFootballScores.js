@@ -6,11 +6,44 @@ export function useFootballScores() {
   const games = ref([])
   const loading = ref(false)
   const error = ref(null)
+  const rankings = ref({})
+
+  const fetchRankings = async () => {
+    try {
+      // Fetch College Football rankings
+      const collegeRankingsResponse = await axios.get('https://site.api.espn.com/apis/site/v2/sports/football/college-football/rankings', {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; FootballScoresApp/1.0)'
+        }
+      })
+
+      const rankingsMap = {}
+
+      if (collegeRankingsResponse.data.rankings?.[0]?.ranks) {
+        collegeRankingsResponse.data.rankings[0].ranks.forEach(rank => {
+          if (rank.team?.displayName && rank.current <= 25) {
+            rankingsMap[rank.team.displayName.toLowerCase()] = rank.current
+          }
+        })
+      }
+
+      rankings.value = rankingsMap
+    } catch (err) {
+      console.error('Error fetching rankings:', err)
+      rankings.value = {}
+    }
+  }
 
   const fetchScores = async () => {
     try {
       loading.value = true
       error.value = null
+
+      // Fetch rankings first if not already fetched
+      if (Object.keys(rankings.value).length === 0) {
+        await fetchRankings()
+      }
 
       // Fetch College Football scores from ESPN API
       const collegeResponse = await axios.get('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard', {
@@ -44,17 +77,22 @@ export function useFootballScores() {
 
           if (!homeTeam || !awayTeam) return null
 
+          const homeTeamName = homeTeam.team?.displayName || 'Unknown'
+          const awayTeamName = awayTeam.team?.displayName || 'Unknown'
+
           return {
             id: event.id,
             awayTeam: {
-              name: awayTeam.team?.displayName || 'Unknown',
+              name: awayTeamName,
               score: parseInt(awayTeam.score) || 0,
-              logo: '🏈'
+              logo: homeTeam.team?.logo || '🏈',
+              ranking: rankings.value[awayTeamName.toLowerCase()] || null
             },
             homeTeam: {
-              name: homeTeam.team?.displayName || 'Unknown',
+              name: homeTeamName,
               score: parseInt(homeTeam.score) || 0,
-              logo: '🏈'
+              logo: awayTeam.team?.logo || '🏈',
+              ranking: rankings.value[homeTeamName.toLowerCase()] || null
             },
             timeLeft: event.status?.displayClock || '0:00',
             quarter: event.status?.period || 1,

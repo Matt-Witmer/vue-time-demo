@@ -9,6 +9,15 @@ const updateTime = () => {
   currentTime.value = new Date()
 }
 
+const handleImageError = (event) => {
+  // Fallback to emoji if image fails to load
+  event.target.style.display = 'none'
+  const emojiDiv = event.target.nextElementSibling || event.target.previousElementSibling
+  if (emojiDiv && emojiDiv.classList.contains('emoji')) {
+    emojiDiv.style.display = 'flex'
+  }
+}
+
 let interval
 
 onMounted(() => {
@@ -46,17 +55,25 @@ onUnmounted(() => {
         </div>
         <div class="teams-container">
           <div class="team away">
-            <div class="team-logo">{{ game.awayTeam.logo }}</div>
+            <img v-if="game.awayTeam.logo.startsWith('http')" :src="game.awayTeam.logo" :alt="game.awayTeam.name" class="team-logo" @error="handleImageError($event)" />
+            <div v-else class="team-logo emoji">{{ game.awayTeam.logo }}</div>
             <div class="team-info">
-              <div class="team-name">{{ game.awayTeam.name.length > 15 ? game.awayTeam.name.substring(0, 15) + '...' : game.awayTeam.name }}</div>
+              <div class="team-name">
+                <span v-if="game.awayTeam.ranking && game.awayTeam.ranking <= 25" class="ranking">#{{ game.awayTeam.ranking }}</span>
+                {{ game.awayTeam.name.length > 15 ? game.awayTeam.name.substring(0, 15) + '...' : game.awayTeam.name }}
+              </div>
               <div class="team-score">{{ game.awayTeam.score }}</div>
             </div>
           </div>
           <div class="vs">vs</div>
           <div class="team home">
-            <div class="team-logo">{{ game.homeTeam.logo }}</div>
+            <img v-if="game.homeTeam.logo.startsWith('http')" :src="game.homeTeam.logo" :alt="game.homeTeam.name" class="team-logo" @error="handleImageError($event)" />
+            <div v-else class="team-logo emoji">{{ game.homeTeam.logo }}</div>
             <div class="team-info">
-              <div class="team-name">{{ game.homeTeam.name.length > 15 ? game.homeTeam.name.substring(0, 15) + '...' : game.homeTeam.name }}</div>
+              <div class="team-name">
+                <span v-if="game.homeTeam.ranking && game.homeTeam.ranking <= 25" class="ranking">#{{ game.homeTeam.ranking }}</span>
+                {{ game.homeTeam.name.length > 15 ? game.homeTeam.name.substring(0, 15) + '...' : game.homeTeam.name }}
+              </div>
               <div class="team-score">{{ game.homeTeam.score }}</div>
             </div>
           </div>
@@ -142,16 +159,15 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  padding-top: 2rem;
   min-height: 100vh;
   width: 100vw;
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3e5c99 100%);
   color: #ffffff;
   font-family: 'Roboto', sans-serif;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
   margin: 0;
-  padding: 0;
 }
 
 .scores-container::before {
@@ -176,6 +192,7 @@ onUnmounted(() => {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   padding: 2rem;
   backdrop-filter: blur(10px);
+  margin-bottom: 2rem;
 }
 
 .game-card {
@@ -233,6 +250,12 @@ onUnmounted(() => {
   background: #f8f9fa;
   border-radius: 50%;
   border: 2px solid #1e3c72;
+  object-fit: contain;
+  padding: 2px;
+}
+
+.team-logo.emoji {
+  display: flex;
 }
 
 .team-info {
@@ -245,6 +268,20 @@ onUnmounted(() => {
   font-weight: bold;
   color: #333;
   font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ranking {
+  background: #1e3c72;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  min-width: 2rem;
+  text-align: center;
 }
 
 .team-score {
