@@ -84,9 +84,10 @@ onUnmounted(() => {
         </div>
 
         <!-- Football Field Visualization -->
-        <div v-if="game.fieldData && game.fieldData.ballPosition && game.fieldData.lineToGain" class="field-container">
+        <div v-if="game.fieldData" class="field-container">
           <div class="field-info">
-            <div class="down-distance">{{ game.fieldData.down }}{{ game.fieldData.down === 1 ? 'st' : game.fieldData.down === 2 ? 'nd' : game.fieldData.down === 3 ? 'rd' : 'th' }} & {{ game.fieldData.yardsToGo }}</div>
+            <div class="down-distance" v-if="game.fieldData.down && game.fieldData.yardsToGo">{{ game.fieldData.down }}{{ game.fieldData.down === 1 ? 'st' : game.fieldData.down === 2 ? 'nd' : game.fieldData.down === 3 ? 'rd' : 'th' }} & {{ game.fieldData.yardsToGo }}</div>
+            <div class="down-distance" v-else>Live Play</div>
           </div>
           <div class="football-field">
             <!-- End Zone Left -->
@@ -101,14 +102,21 @@ onUnmounted(() => {
                 <div class="yard-number" v-if="yard !== 50">{{ yard > 50 ? 100 - yard : yard }}</div>
               </div>
 
-              <!-- Ball position line (black) -->
-              <div class="ball-line" :style="{ left: `${game.fieldData.ballPosition}%` }"></div>
+              <!-- Ball position line (black) - show if we have valid ball position -->
+              <div v-if="game.fieldData.ballPosition !== null && game.fieldData.ballPosition !== undefined && game.fieldData.ballPosition >= 0 && game.fieldData.ballPosition <= 100"
+                   class="ball-line" :style="{ left: `${game.fieldData.ballPosition}%` }"></div>
 
-              <!-- Line to gain (yellow) -->
-              <div class="first-down-line" :style="{ left: `${game.fieldData.lineToGain}%` }"></div>
+              <!-- Line to gain (yellow) - show if we have valid line to gain -->
+              <div v-if="game.fieldData.lineToGain !== null && game.fieldData.lineToGain !== undefined && game.fieldData.lineToGain >= 0 && game.fieldData.lineToGain <= 100"
+                   class="first-down-line" :style="{ left: `${game.fieldData.lineToGain}%` }"></div>
 
-              <!-- Direction arrow from ball to first down -->
-              <div class="direction-arrow" :class="{ 'from-ball-to-first': true }" :style="{ left: `${game.fieldData.ballPosition}%`, width: `${Math.abs(game.fieldData.lineToGain - game.fieldData.ballPosition)}%` }">
+              <!-- Direction arrow - show if we have both positions and they make sense -->
+              <div v-if="game.fieldData.ballPosition !== null && game.fieldData.lineToGain !== null &&
+                         game.fieldData.ballPosition >= 0 && game.fieldData.ballPosition <= 100 &&
+                         game.fieldData.lineToGain >= 0 && game.fieldData.lineToGain <= 100 &&
+                         Math.abs(game.fieldData.lineToGain - game.fieldData.ballPosition) > 0"
+                   class="direction-arrow" :class="{ 'from-ball-to-first': true }"
+                   :style="{ left: `${game.fieldData.ballPosition}%`, width: `${Math.abs(game.fieldData.lineToGain - game.fieldData.ballPosition)}%` }">
                 <div class="arrow" :class="{ left: game.fieldData.lineToGain < game.fieldData.ballPosition, right: game.fieldData.lineToGain > game.fieldData.ballPosition }">→</div>
               </div>
             </div>

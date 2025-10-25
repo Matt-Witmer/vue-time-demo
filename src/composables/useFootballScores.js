@@ -154,13 +154,31 @@ export function useFootballScores() {
 
           // Get field position data
           const situation = competition.situation
-          const fieldData = situation ? {
-            ballPosition: situation.location,
-            lineToGain: situation.lineToGain,
-            down: situation.down,
-            yardsToGo: situation.distance,
-            direction: situation.direction || (possessionTeamId === homeTeam.id ? 'left' : 'right')
-          } : null
+          let fieldData = null
+
+          if (situation) {
+            // Convert yard line to percentage (0-100)
+            let ballPosition = null
+            let lineToGain = null
+
+            if (situation.location !== null && situation.location !== undefined) {
+              // ESPN gives yard line from 0-100, where 0 is the home team's goal line
+              // Convert to percentage for our field visualization
+              ballPosition = Math.max(0, Math.min(100, situation.location))
+            }
+
+            if (situation.lineToGain !== null && situation.lineToGain !== undefined) {
+              lineToGain = Math.max(0, Math.min(100, situation.lineToGain))
+            }
+
+            fieldData = {
+              ballPosition: ballPosition,
+              lineToGain: lineToGain,
+              down: situation.down || null,
+              yardsToGo: situation.distance || null,
+              direction: situation.direction || (possessionTeamId === homeTeam.id ? 'left' : 'right')
+            }
+          }
 
           return {
             id: event.id,
