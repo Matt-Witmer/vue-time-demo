@@ -16,6 +16,46 @@ export function useFootballScores() {
       .trim()
   }
 
+  const getTeamRanking = (teamName, rankingsMap) => {
+    if (!teamName || !rankingsMap) return null
+
+    const key = teamName.toLowerCase()
+    // Direct match first
+    if (rankingsMap[key]) return rankingsMap[key]
+
+    // Try normalized name
+    const normalizedKey = normalizeTeamName(teamName)
+    if (rankingsMap[normalizedKey]) return rankingsMap[normalizedKey]
+
+    // Fuzzy match: try to find a key that contains the main part of the name
+    const baseName = key.split(' ').slice(0, 2).join(' ') // e.g. "south carolina"
+
+    for (const rankingKey in rankingsMap) {
+      if (rankingKey.includes(baseName) || baseName.includes(rankingKey)) {
+        return rankingsMap[rankingKey]
+      }
+      // Also try with normalized ranking key
+      const normalizedRankingKey = normalizeTeamName(rankingKey)
+      if (normalizedRankingKey.includes(baseName) || baseName.includes(normalizedRankingKey)) {
+        return rankingsMap[rankingKey]
+      }
+    }
+
+    // Try partial matches with common words
+    const words = key.split(' ')
+    for (const word of words) {
+      if (word.length > 3) { // Skip short words
+        for (const rankingKey in rankingsMap) {
+          if (rankingKey.includes(word)) {
+            return rankingsMap[rankingKey]
+          }
+        }
+      }
+    }
+
+    return null
+  }
+
   const fetchRankings = async () => {
     try {
       // Fetch College Football rankings
@@ -127,14 +167,14 @@ export function useFootballScores() {
               name: awayTeamName,
               score: parseInt(awayTeam.score) || 0,
               logo: awayTeam.team?.logo || '🏈',
-              ranking: rankings.value[awayTeamName.toLowerCase()] || rankings.value[normalizeTeamName(awayTeamName)] || null,
+              ranking: getTeamRanking(awayTeamName, rankings.value),
               hasPossession: possessionTeamId === awayTeam.id
             },
             homeTeam: {
               name: homeTeamName,
               score: parseInt(homeTeam.score) || 0,
               logo: homeTeam.team?.logo || '🏈',
-              ranking: rankings.value[homeTeamName.toLowerCase()] || rankings.value[normalizeTeamName(homeTeamName)] || null,
+              ranking: getTeamRanking(homeTeamName, rankings.value),
               hasPossession: possessionTeamId === homeTeam.id
             },
             timeLeft: event.status?.displayClock || '0:00',
