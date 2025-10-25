@@ -22,8 +22,13 @@ export function useFootballScores() {
 
       if (collegeRankingsResponse.data.rankings?.[0]?.ranks) {
         collegeRankingsResponse.data.rankings[0].ranks.forEach(rank => {
-          if (rank.team?.displayName && rank.current <= 25) {
+          if (rank.team?.displayName) {
+            // Store rankings for all teams, not just top 25
             rankingsMap[rank.team.displayName.toLowerCase()] = rank.current
+            // Also try common name variations
+            const name = rank.team.displayName.toLowerCase()
+            if (name.includes('missouri')) rankingsMap['missouri'] = rank.current
+            if (name.includes('vanderbilt')) rankingsMap['vanderbilt'] = rank.current
           }
         })
       }
