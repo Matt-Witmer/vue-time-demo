@@ -8,6 +8,14 @@ export function useFootballScores() {
   const error = ref(null)
   const rankings = ref({})
 
+  const normalizeTeamName = (name) => {
+    if (!name) return ''
+    return name.toLowerCase()
+      .replace(/state$/, '') // Remove "State" suffix
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim()
+  }
+
   const fetchRankings = async () => {
     try {
       // Fetch College Football rankings
@@ -23,16 +31,31 @@ export function useFootballScores() {
       if (collegeRankingsResponse.data.rankings?.[0]?.ranks) {
         collegeRankingsResponse.data.rankings[0].ranks.forEach(rank => {
           if (rank.team?.displayName) {
-            // Store rankings for all teams, not just top 25
-            rankingsMap[rank.team.displayName.toLowerCase()] = rank.current
-            // Also try common name variations
-            const name = rank.team.displayName.toLowerCase()
-            if (name.includes('missouri')) rankingsMap['missouri'] = rank.current
+            const fullName = rank.team.displayName.toLowerCase()
+            const normalizedName = normalizeTeamName(rank.team.displayName)
+
+            // Store multiple variations of the team name
+            rankingsMap[fullName] = rank.current
+            rankingsMap[normalizedName] = rank.current
+
+            // Store common abbreviations and variations
+            const name = fullName
+            if (name.includes('university')) rankingsMap[name.replace('university', 'u')] = rank.current
+            if (name.includes('college')) rankingsMap[name.replace('college', '')] = rank.current
+
+            // Handle specific known variations
+            if (name.includes('missouri')) {
+              rankingsMap['missouri'] = rank.current
+              rankingsMap['mizzouri'] = rank.current
+            }
             if (name.includes('vanderbilt')) rankingsMap['vanderbilt'] = rank.current
+            if (name.includes('south carolina')) rankingsMap['south carolina'] = rank.current
+            if (name.includes('gamecocks')) rankingsMap['gamecocks'] = rank.current
           }
         })
       }
 
+      console.log('Rankings loaded:', rankingsMap) // Debug logging
       rankings.value = rankingsMap
     } catch (err) {
       console.error('Error fetching rankings:', err)
@@ -104,14 +127,14 @@ export function useFootballScores() {
               name: awayTeamName,
               score: parseInt(awayTeam.score) || 0,
               logo: awayTeam.team?.logo || '🏈',
-              ranking: rankings.value[awayTeamName.toLowerCase()] || null,
+              ranking: rankings.value[awayTeamName.toLowerCase()] || rankings.value[normalizeTeamName(awayTeamName)] || null,
               hasPossession: possessionTeamId === awayTeam.id
             },
             homeTeam: {
               name: homeTeamName,
               score: parseInt(homeTeam.score) || 0,
               logo: homeTeam.team?.logo || '🏈',
-              ranking: rankings.value[homeTeamName.toLowerCase()] || null,
+              ranking: rankings.value[homeTeamName.toLowerCase()] || rankings.value[normalizeTeamName(homeTeamName)] || null,
               hasPossession: possessionTeamId === homeTeam.id
             },
             timeLeft: event.status?.displayClock || '0:00',
