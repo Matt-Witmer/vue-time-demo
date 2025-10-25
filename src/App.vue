@@ -96,17 +96,15 @@ onUnmounted(() => {
 
             <!-- Field -->
             <div class="field">
-              <!-- Yard lines -->
-              <div class="yard-line" v-for="yard in [10, 20, 30, 40, 50]" :key="yard" :style="{ left: `${(yard / 100) * 100}%` }">
-                <div class="yard-number">{{ yard }}</div>
+              <!-- Yard lines for both halves -->
+              <div class="yard-line" v-for="yard in [10, 20, 30, 40, 50, 60, 70, 80, 90]" :key="yard" :style="{ left: `${(yard / 100) * 100}%` }">
+                <div class="yard-number" v-if="yard !== 50">{{ yard > 50 ? 100 - yard : yard }}</div>
               </div>
 
-              <!-- Ball position -->
-              <div class="ball-position" :style="{ left: `${(game.fieldData.ballPosition / 100) * 100}%` }">
-                <div class="ball">🏈</div>
-              </div>
+              <!-- Ball position line (black) -->
+              <div class="ball-position-line" :style="{ left: `${(game.fieldData.ballPosition / 100) * 100}%` }"></div>
 
-              <!-- Line to gain -->
+              <!-- Line to gain (yellow) -->
               <div class="line-to-gain" :style="{ left: `${(game.fieldData.lineToGain / 100) * 100}%` }"></div>
 
               <!-- Direction arrow -->
@@ -367,16 +365,14 @@ onUnmounted(() => {
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
-.ball-position {
+.ball-position-line {
   position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-}
-
-.ball {
-  font-size: 1.5rem;
-  animation: pulse 2s infinite;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #000000;
+  opacity: 0.9;
+  z-index: 2;
 }
 
 .line-to-gain {
@@ -416,10 +412,6 @@ onUnmounted(() => {
   transform: scaleX(-1);
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-}
 
 @keyframes slide {
   0%, 100% { transform: translateX(0); }
