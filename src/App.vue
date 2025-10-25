@@ -24,10 +24,18 @@ onUnmounted(() => {
 
 <template>
   <div v-if="loading" class="time-container">
-    <h1 class="time-display">Loading...</h1>
+    <h1 class="time-display">Loading football scores...</h1>
   </div>
   <div v-else-if="error" class="time-container">
-    <h1 class="time-display">Error: {{ error }}</h1>
+    <div class="error-message">
+      <h1 class="time-display">Unable to load scores</h1>
+      <p class="date-display">{{ error }}</p>
+      <p class="date-display">Showing current time instead</p>
+    </div>
+  </div>
+  <div v-else-if="isGameDay === false && games.length === 0" class="time-container">
+    <h1 class="time-display">{{ currentTime.toLocaleTimeString() }}</h1>
+    <p class="date-display">No live games currently</p>
   </div>
   <div v-else-if="isGameDay" class="scores-container">
     <div class="games-list">
@@ -40,7 +48,7 @@ onUnmounted(() => {
           <div class="team away">
             <div class="team-logo">{{ game.awayTeam.logo }}</div>
             <div class="team-info">
-              <div class="team-name">{{ game.awayTeam.name }}</div>
+              <div class="team-name">{{ game.awayTeam.name.length > 15 ? game.awayTeam.name.substring(0, 15) + '...' : game.awayTeam.name }}</div>
               <div class="team-score">{{ game.awayTeam.score }}</div>
             </div>
           </div>
@@ -48,7 +56,7 @@ onUnmounted(() => {
           <div class="team home">
             <div class="team-logo">{{ game.homeTeam.logo }}</div>
             <div class="team-info">
-              <div class="team-name">{{ game.homeTeam.name }}</div>
+              <div class="team-name">{{ game.homeTeam.name.length > 15 ? game.homeTeam.name.substring(0, 15) + '...' : game.homeTeam.name }}</div>
               <div class="team-score">{{ game.homeTeam.score }}</div>
             </div>
           </div>

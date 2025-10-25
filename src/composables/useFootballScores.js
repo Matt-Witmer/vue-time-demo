@@ -12,43 +12,66 @@ export function useFootballScores() {
       loading.value = true
       error.value = null
 
-      // For demo purposes, we'll simulate some live games
-      // In a real implementation, you'd use an actual API like ESPN API or sportsdata.io
-      const mockGames = [
-        {
-          id: 1,
-          awayTeam: { name: 'Alabama', score: 24, logo: '🏈' },
-          homeTeam: { name: 'Georgia', score: 21, logo: '🏈' },
-          timeLeft: '12:34',
-          quarter: 3,
-          status: 'in_progress'
-        },
-        {
-          id: 2,
-          awayTeam: { name: 'Ohio State', score: 17, logo: '🏈' },
-          homeTeam: { name: 'Michigan', score: 14, logo: '🏈' },
-          timeLeft: '7:45',
-          quarter: 2,
-          status: 'in_progress'
-        },
-        {
-          id: 3,
-          awayTeam: { name: 'Kansas City Chiefs', score: 20, logo: '🏈' },
-          homeTeam: { name: 'Buffalo Bills', score: 17, logo: '🏈' },
-          timeLeft: '3:21',
-          quarter: 4,
-          status: 'in_progress'
+      // Fetch College Football scores from ESPN API
+      const collegeResponse = await axios.get('https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard', {
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; FootballScoresApp/1.0)'
         }
-      ]
+      })
+      const collegeGames = collegeResponse.data.events || []
 
-      // Check if there are any games in progress
-      const gamesInProgress = mockGames.filter(game => game.status === 'in_progress')
-      isGameDay.value = gamesInProgress.length > 0
-      games.value = gamesInProgress
+      // Fetch NFL scores from ESPN API
+      const nflResponse = await axios.get('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard', {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; FootballScoresApp/1.0)'
+        }
+      })
+      const nflGames = nflResponse.data.events || []
+
+      // Combine and process games
+      const allGames = [...collegeGames, ...nflGames]
+
+      const processedGames = allGames
+        .filter(event => event.status?.type?.state === 'in') // Only live games
+        .map(event => {
+          const competition = event.competitions?.[0]
+          if (!competition) return null
+
+          const homeTeam = competition.competitors?.find(t => t.homeAway === 'home')
+          const awayTeam = competition.competitors?.find(t => t.homeAway === 'away')
+
+          if (!homeTeam || !awayTeam) return null
+
+          return {
+            id: event.id,
+            awayTeam: {
+              name: awayTeam.team?.displayName || 'Unknown',
+              score: parseInt(awayTeam.score) || 0,
+              logo: '🏈'
+            },
+            homeTeam: {
+              name: homeTeam.team?.displayName || 'Unknown',
+              score: parseInt(homeTeam.score) || 0,
+              logo: '🏈'
+            },
+            timeLeft: event.status?.displayClock || '0:00',
+            quarter: event.status?.period || 1,
+            status: 'in_progress'
+          }
+        })
+        .filter(Boolean) // Remove null entries
+
+      isGameDay.value = processedGames.length > 0
+      games.value = processedGames
 
     } catch (err) {
       error.value = err.message
       console.error('Error fetching football scores:', err)
+      // Fallback to no games on error
+      isGameDay.value = false
+      games.value = []
     } finally {
       loading.value = false
     }
@@ -62,8 +85,8 @@ export function useFootballScores() {
 
   onMounted(() => {
     fetchScores()
-    // Update every 30 seconds
-    interval = setInterval(updateScores, 30000)
+    // Update every 60 seconds to avoid rate limiting
+    interval = setInterval(updateScores, 60000)
   })
 
   onUnmounted(() => {
