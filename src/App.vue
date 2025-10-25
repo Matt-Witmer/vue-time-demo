@@ -369,20 +369,26 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   bottom: 0;
+  left: 0;
+  right: 0;
   width: 3px;
   background: #000000;
   opacity: 0.9;
   z-index: 2;
+  margin: 0 auto;
 }
 
 .line-to-gain {
   position: absolute;
   top: 0;
   bottom: 0;
+  left: 0;
+  right: 0;
   width: 3px;
   background: yellow;
   opacity: 0.9;
   z-index: 2;
+  margin: 0 auto;
 }
 
 .direction-arrow {
@@ -462,18 +468,19 @@ onUnmounted(() => {
   font-size: 1.1rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .ranking {
   background: #1e3c72;
   color: white;
-  padding: 0.1rem 0.4rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 10px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: bold;
-  min-width: 2rem;
+  min-width: 1.8rem;
   text-align: center;
+  line-height: 1;
 }
 
 .team-score {
