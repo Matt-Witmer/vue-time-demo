@@ -84,7 +84,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Football Field Visualization -->
-        <div v-if="game.fieldData" class="field-container">
+        <div v-if="game.fieldData && game.fieldData.down > 0 && game.fieldData.yardsToGo > 0" class="field-container">
           <div class="field-info">
             <div class="down-distance">{{ game.fieldData.down }}{{ game.fieldData.down === 1 ? 'st' : game.fieldData.down === 2 ? 'nd' : game.fieldData.down === 3 ? 'rd' : 'th' }} & {{ game.fieldData.yardsToGo }}</div>
           </div>
