@@ -84,7 +84,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Football Field Visualization -->
-        <div v-if="game.fieldData && game.fieldData.down > 0 && game.fieldData.yardsToGo > 0" class="field-container">
+        <div v-if="game.fieldData && game.fieldData.ballPosition && game.fieldData.lineToGain" class="field-container">
           <div class="field-info">
             <div class="down-distance">{{ game.fieldData.down }}{{ game.fieldData.down === 1 ? 'st' : game.fieldData.down === 2 ? 'nd' : game.fieldData.down === 3 ? 'rd' : 'th' }} & {{ game.fieldData.yardsToGo }}</div>
           </div>
@@ -102,14 +102,14 @@ onUnmounted(() => {
               </div>
 
               <!-- Ball position line (black) -->
-              <div class="ball-position-line" :style="{ left: `${(game.fieldData.ballPosition / 100) * 100}%` }"></div>
+              <div class="ball-line" :style="{ left: `${game.fieldData.ballPosition}%` }"></div>
 
               <!-- Line to gain (yellow) -->
-              <div class="line-to-gain" :style="{ left: `${(game.fieldData.lineToGain / 100) * 100}%` }"></div>
+              <div class="first-down-line" :style="{ left: `${game.fieldData.lineToGain}%` }"></div>
 
-              <!-- Direction arrow -->
-              <div class="direction-arrow" :class="{ left: game.fieldData.direction === 'left', right: game.fieldData.direction === 'right' }">
-                <div class="arrow">→</div>
+              <!-- Direction arrow from ball to first down -->
+              <div class="direction-arrow" :class="{ 'from-ball-to-first': true }" :style="{ left: `${game.fieldData.ballPosition}%`, width: `${Math.abs(game.fieldData.lineToGain - game.fieldData.ballPosition)}%` }">
+                <div class="arrow" :class="{ left: game.fieldData.lineToGain < game.fieldData.ballPosition, right: game.fieldData.lineToGain > game.fieldData.ballPosition }">→</div>
               </div>
             </div>
 
@@ -365,48 +365,37 @@ onUnmounted(() => {
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
-.ball-position-line {
+.ball-line {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
   width: 3px;
   background: #000000;
   opacity: 0.9;
-  z-index: 2;
-  margin: 0 auto;
+  z-index: 3;
 }
 
-.line-to-gain {
+.first-down-line {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
   width: 3px;
   background: yellow;
   opacity: 0.9;
-  z-index: 2;
-  margin: 0 auto;
+  z-index: 3;
 }
 
-.direction-arrow {
+.direction-arrow.from-ball-to-first {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.direction-arrow.left {
-  left: 10px;
-}
-
-.direction-arrow.right {
-  right: 10px;
-}
-
-.arrow {
+.direction-arrow.from-ball-to-first .arrow {
   font-size: 1.2rem;
   color: white;
   font-weight: bold;
