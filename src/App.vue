@@ -61,8 +61,8 @@ onUnmounted(() => {
             <div v-else class="team-logo emoji">{{ game.awayTeam.logo }}</div>
             <div class="team-info">
               <div class="team-name">
-                <span v-if="game.awayTeam.ranking && game.awayTeam.ranking <= 25" class="ranking">#{{ game.awayTeam.ranking }}</span>
-                {{ game.awayTeam.name.length > 15 ? game.awayTeam.name.substring(0, 15) + '...' : game.awayTeam.name }}
+                <span v-if="game.awayTeam.ranking" class="ranking">#{{ game.awayTeam.ranking }}</span>
+                {{ game.awayTeam.name }}
                 <span v-if="game.awayTeam.hasPossession" class="possession-icon">🏈</span>
               </div>
               <div class="team-score">{{ game.awayTeam.score }}</div>
@@ -74,11 +74,50 @@ onUnmounted(() => {
             <div v-else class="team-logo emoji">{{ game.homeTeam.logo }}</div>
             <div class="team-info">
               <div class="team-name">
-                <span v-if="game.homeTeam.ranking && game.homeTeam.ranking <= 25" class="ranking">#{{ game.homeTeam.ranking }}</span>
-                {{ game.homeTeam.name.length > 15 ? game.homeTeam.name.substring(0, 15) + '...' : game.homeTeam.name }}
+                <span v-if="game.homeTeam.ranking" class="ranking">#{{ game.homeTeam.ranking }}</span>
+                {{ game.homeTeam.name }}
                 <span v-if="game.homeTeam.hasPossession" class="possession-icon">🏈</span>
               </div>
               <div class="team-score">{{ game.homeTeam.score }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Football Field Visualization -->
+        <div v-if="game.fieldData" class="field-container">
+          <div class="field-info">
+            <div class="down-distance">{{ game.fieldData.down }}{{ game.fieldData.down === 1 ? 'st' : game.fieldData.down === 2 ? 'nd' : game.fieldData.down === 3 ? 'rd' : 'th' }} & {{ game.fieldData.yardsToGo }}</div>
+          </div>
+          <div class="football-field">
+            <!-- End Zone Left -->
+            <div class="end-zone left">
+              <div class="end-zone-label">{{ game.fieldData.direction === 'left' ? game.homeTeam.name.split(' ').pop() : game.awayTeam.name.split(' ').pop() }}</div>
+            </div>
+
+            <!-- Field -->
+            <div class="field">
+              <!-- Yard lines -->
+              <div class="yard-line" v-for="yard in [10, 20, 30, 40, 50]" :key="yard" :style="{ left: `${(yard / 100) * 100}%` }">
+                <div class="yard-number">{{ yard }}</div>
+              </div>
+
+              <!-- Ball position -->
+              <div class="ball-position" :style="{ left: `${(game.fieldData.ballPosition / 100) * 100}%` }">
+                <div class="ball">🏈</div>
+              </div>
+
+              <!-- Line to gain -->
+              <div class="line-to-gain" :style="{ left: `${(game.fieldData.lineToGain / 100) * 100}%` }"></div>
+
+              <!-- Direction arrow -->
+              <div class="direction-arrow" :class="{ left: game.fieldData.direction === 'left', right: game.fieldData.direction === 'right' }">
+                <div class="arrow">→</div>
+              </div>
+            </div>
+
+            <!-- End Zone Right -->
+            <div class="end-zone right">
+              <div class="end-zone-label">{{ game.fieldData.direction === 'right' ? game.homeTeam.name.split(' ').pop() : game.awayTeam.name.split(' ').pop() }}</div>
             </div>
           </div>
         </div>
@@ -241,6 +280,150 @@ onUnmounted(() => {
   0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-5px); }
   60% { transform: translateY(-3px); }
+}
+
+/* Football Field Styles */
+.field-container {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.field-info {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.down-distance {
+  background: #1e3c72;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.football-field {
+  display: flex;
+  height: 80px;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.end-zone {
+  width: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+  color: white;
+  position: relative;
+}
+
+.end-zone.left {
+  background: linear-gradient(90deg, #c41e3a 0%, #8b1e3a 100%);
+}
+
+.end-zone.right {
+  background: linear-gradient(90deg, #8b1e3a 0%, #c41e3a 100%);
+}
+
+.end-zone-label {
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  font-size: 0.7rem;
+}
+
+.field {
+  flex: 1;
+  background: linear-gradient(to right, #4ade80 0%, #22c55e 25%, #16a34a 75%, #15803d 100%);
+  position: relative;
+  border-left: 2px solid white;
+  border-right: 2px solid white;
+}
+
+.yard-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: white;
+  opacity: 0.8;
+}
+
+.yard-number {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.ball-position {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.ball {
+  font-size: 1.5rem;
+  animation: pulse 2s infinite;
+}
+
+.line-to-gain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: yellow;
+  opacity: 0.9;
+  z-index: 2;
+}
+
+.direction-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+}
+
+.direction-arrow.left {
+  left: 10px;
+}
+
+.direction-arrow.right {
+  right: 10px;
+}
+
+.arrow {
+  font-size: 1.2rem;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  animation: slide 1.5s infinite;
+}
+
+.direction-arrow.left .arrow {
+  transform: scaleX(-1);
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes slide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
 }
 
 .teams-container {

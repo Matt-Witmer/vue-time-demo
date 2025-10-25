@@ -83,6 +83,16 @@ export function useFootballScores() {
           const possession = competition.situation?.possession || null
           const possessionTeamId = possession ? competition.competitors.find(t => t.id === possession)?.id : null
 
+          // Get field position data
+          const situation = competition.situation
+          const fieldData = situation ? {
+            ballPosition: situation.location,
+            lineToGain: situation.lineToGain,
+            down: situation.down,
+            yardsToGo: situation.distance,
+            direction: situation.direction || (possessionTeamId === homeTeam.id ? 'left' : 'right')
+          } : null
+
           return {
             id: event.id,
             awayTeam: {
@@ -102,7 +112,8 @@ export function useFootballScores() {
             timeLeft: event.status?.displayClock || '0:00',
             quarter: event.status?.period || 1,
             status: 'in_progress',
-            isHalftime: event.status?.type?.state === 'halftime'
+            isHalftime: event.status?.type?.state === 'halftime',
+            fieldData: fieldData
           }
         })
         .filter(Boolean) // Remove null entries
