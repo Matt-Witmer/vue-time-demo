@@ -20,10 +20,11 @@ export function useFootballScores() {
     if (!teamName || !rankingsMap) return null
 
     const key = teamName.toLowerCase()
-    // Direct match first
+
+    // Direct match first - return the ranking number
     if (rankingsMap[key]) return rankingsMap[key]
 
-    // Try normalized name
+    // Try normalized name - return the ranking number
     const normalizedKey = normalizeTeamName(teamName)
     if (rankingsMap[normalizedKey]) return rankingsMap[normalizedKey]
 
@@ -32,12 +33,12 @@ export function useFootballScores() {
 
     for (const rankingKey in rankingsMap) {
       if (rankingKey.includes(baseName) || baseName.includes(rankingKey)) {
-        return rankingsMap[rankingKey]
+        return rankingsMap[rankingKey] // Return the ranking number
       }
       // Also try with normalized ranking key
       const normalizedRankingKey = normalizeTeamName(rankingKey)
       if (normalizedRankingKey.includes(baseName) || baseName.includes(normalizedRankingKey)) {
-        return rankingsMap[rankingKey]
+        return rankingsMap[rankingKey] // Return the ranking number
       }
     }
 
@@ -47,13 +48,13 @@ export function useFootballScores() {
       if (word.length > 3) { // Skip short words
         for (const rankingKey in rankingsMap) {
           if (rankingKey.includes(word)) {
-            return rankingsMap[rankingKey]
+            return rankingsMap[rankingKey] // Return the ranking number
           }
         }
       }
     }
 
-    return null
+    return null // Return null if no ranking found
   }
 
   const fetchRankings = async () => {
